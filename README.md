@@ -4,7 +4,7 @@
 
 `velvet-language` is the language and conversation layer of the Velvet ecosystem.
 
-It does not own sensors, memory, reasoning, authority, actuation, or audio hardware. It receives structured meaning from trusted Velvet systems and renders that meaning into human language for speech, text, UI surfaces, alerts, explanations, questions, and conversation.
+It does not own sensors, canonical memory, cognition, authority, actuation, or audio hardware. It receives structured meaning and bounded context from trusted Velvet systems and turns them into human language for speech, text, UI surfaces, alerts, explanations, questions, and conversation.
 
 ## Core Doctrine
 
@@ -12,27 +12,34 @@ Velvet must remain capable of truthful communication even when no generative lan
 
 Language quality may degrade. Truthfulness must not.
 
-The repository therefore treats language generation as a layered capability:
+Language is also developmental. Vocabulary, phrase preferences, sentence patterns, and conversational habits may improve through receipted experience, but `velvet-language` does not silently rewrite itself. Learning remains governed by `velvet-ai-core` plasticity and memory boundaries.
+
+The capability ladder is:
 
 1. deterministic emergency and critical phrasing
 2. approved response families and templates
-3. grammar and sentence realization
-4. conversation planning and response selection
-5. optional local or remote language-model adapters
+3. sentence frames and bounded grammar realization
+4. conversation acts, goals, reference resolution, and response strategy
+5. context-sensitive turn orchestration
+6. learned language competence promoted through governed Core review
+7. optional local or remote language-model assistance
 
-A language model may improve expression. It must never become the sole owner of Velvet's ability to communicate.
+A language model may improve expression or provide temporary breadth. It must never become the sole owner of Velvet's ability to communicate.
 
 ## Responsibilities
 
 - transform verified meaning into human-readable language
-- select response families according to audience, severity, urgency, mode, and recent context
-- manage conversational state and turn goals
+- interpret bounded conversational acts without granting authority
+- track short-lived conversational state and goals
+- resolve references conservatively and request clarification when ambiguous
+- select response strategy according to act, audience, severity, urgency, mode, confidence, and recent context
+- construct language from approved response families, sentence frames, and grammar
 - express uncertainty without bluffing
-- support clarification and follow-up questions
-- avoid needless repetition
+- avoid needless repetition and permit intentional silence
 - provide deterministic fallback language during degraded operation
 - constrain warning, critical, and emergency phrasing
-- expose stable response identifiers for receipts and testing
+- create proposal-only language-experience evidence for governed learning review
+- expose stable identifiers and policy metadata for receipts and testing
 - remain provider-neutral
 
 ## Non-Responsibilities
@@ -40,79 +47,108 @@ A language model may improve expression. It must never become the sole owner of 
 This repository does not:
 
 - decide physical actions
-- grant runtime authority
-- own canonical memory
+- grant Runtime or Court authority
+- own canonical memory admission or storage
 - own persona continuity
+- own Core learning or plasticity
 - interpret raw sensors
 - operate CAN or vehicle hardware
-- own microphone capture or speaker routing
-- publish public communications
+- capture microphones or route speaker hardware
+- issue canonical receipts
+- publish public project communications
 - fabricate facts to make language sound natural
 
 ## Architectural Boundary
 
 ```text
-trusted system state / verified meaning
-                |
-                v
-        conversation intent
-                |
-                v
-         response planner
-                |
-                v
-         response selector
-                |
-                v
-       language realization
-                |
-                v
-      speech / text / UI output
+trusted meaning + bounded context
+              |
+              v
+      conversation act
+              |
+              v
+   references + turn goals
+              |
+              v
+      response strategy
+              |
+              v
+     context constraints
+              |
+              v
+ frames / grammar / catalog
+              |
+              v
+      truthful expression
+              |
+              v
+ speech request / text / UI
 ```
 
 Meaning comes in. Language goes out.
+
+Audio playback remains the responsibility of `velvet-audio-studio`. Operational authority remains the responsibility of `velvet-runtime` and Court.
+
+## Developmental Loop
+
+```text
+expression
+   -> human/system outcome
+   -> language experience
+   -> evidence accumulation
+   -> promotion candidate
+   -> governed Core review
+   -> future language competence
+```
+
+A correction, preference, or successful phrase is evidence, not an immediate permanent rewrite.
 
 ## Safety Principle
 
 Generative freedom decreases as consequence increases.
 
-Casual conversation may be flexible. Informational messages should remain grounded. Warnings should use constrained language. Critical and emergency messages should be deterministic or nearly deterministic.
+Casual conversation may be flexible. Informational messages remain grounded. Warnings use constrained language. Critical and emergency messages become deterministic or nearly deterministic.
 
 Velvet must never become poetic when the human needs precision.
 
-## Initial Layout
+## Repository Shape
 
 ```text
 .
-├── docs/
-│   ├── LANGUAGE-DOCTRINE.md
-│   ├── ARCHITECTURE.md
-│   └── RESPONSE-CATALOG-POLICY.md
-├── schemas/
-│   └── response-family.schema.json
 ├── catalogs/
+│   ├── conversation/
+│   ├── frames/
 │   └── system/
-│       └── can.yaml
+├── docs/
+├── schemas/
 ├── src/velvet_language/
-│   ├── __init__.py
-│   ├── models.py
-│   ├── selector.py
-│   └── fallback.py
+│   ├── conversation_acts.py
+│   ├── conversation_state.py
+│   ├── context_strategy.py
+│   ├── experience.py
+│   ├── experience_evaluator.py
+│   ├── fallback.py
+│   ├── frames.py
+│   ├── goals.py
+│   ├── orchestrator.py
+│   ├── planner.py
+│   ├── reference_resolution.py
+│   ├── response_strategy.py
+│   └── selector.py
 └── tests/
-    └── test_fallback.py
 ```
 
 ## Relationship to Other Velvet Repositories
 
-- `velvet-ai-core`: cognition, reasoning, canonical memory responsibilities
-- `velvet-persona-continuity`: bounded persona context and continuity
-- `velvet-runtime`: operational state and enforcement
-- `velvet-receipts`: canonical receipts
-- `velvet-audio-studio`: microphone, routing, playback, and audio health
+- `velvet-ai-core`: cognition, canonical memory, learning, reflection, and governed plasticity
+- `velvet-persona-continuity`: bounded persona policy and receipted recall context
+- `velvet-runtime`: verified identity context, authority, Court, coordination, and execution boundary
+- `velvet-receipts`: canonical append-only evidence
+- `velvet-audio-studio`: microphone capture, transcription front end, channel routing, and voice playback
 - `velvet-communications`: outward-facing project communication
 
-`velvet-language` sits between verified meaning and outward expression.
+`velvet-language` owns expression, not the truth sources that feed it and not the authority that may follow from a request.
 
 ## Status
 
-Foundation stage. No runtime or actuation authority is granted by this repository.
+Foundation stage. No Runtime, Court, memory, learning, receipt, or actuation authority is granted by this repository.
