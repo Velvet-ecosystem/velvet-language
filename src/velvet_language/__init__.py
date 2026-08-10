@@ -17,6 +17,7 @@ from .frames import (
 )
 from .goals import ConversationGoal, GoalStatus, update_goal
 from .models import MeaningPacket, RenderedExpression, ResponseVariant
+from .orchestrator import TurnDecision, TurnInput, orchestrate_turn
 from .planner import ConversationPlan, plan_response
 from .reference_resolution import ReferenceCandidate, ReferenceResolution, resolve_reference
 from .response_strategy import ResponseStrategy, StrategyPlan, strategy_for_act
@@ -45,6 +46,8 @@ __all__ = [
     "SentenceFrame",
     "StrategyContext",
     "StrategyPlan",
+    "TurnDecision",
+    "TurnInput",
     "UnknownSlotError",
     "choose_and_realize",
     "contextualize_strategy",
@@ -52,6 +55,7 @@ __all__ = [
     "evaluate_experiences",
     "infer_slots",
     "interpret_conversation_act",
+    "orchestrate_turn",
     "plan_response",
     "realize_frame",
     "render_fallback",
