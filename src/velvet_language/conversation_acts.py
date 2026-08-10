@@ -23,6 +23,7 @@ class ActInterpretation:
     act: ConversationAct
     confidence: float
     evidence: Tuple[str, ...] = ()
+    secondary_acts: Tuple[ConversationAct, ...] = ()
     authority_granted: bool = False
     execution_requested: bool = False
 
@@ -36,8 +37,9 @@ class ActInterpretation:
 def interpret_conversation_act(text: str) -> ActInterpretation:
     """Bounded first-pass interpretation of what a human turn is doing.
 
-    This is intentionally conservative and language-surface only. It does not
-    authorize actions, infer hidden permissions, or bypass Runtime/Court.
+    A turn may have a primary practical act and secondary surface acts. For
+    example, "Can you open the window?" is primarily a request while also
+    having question form. Classification never grants authority.
     """
 
     raw = text.strip()
@@ -47,9 +49,20 @@ def interpret_conversation_act(text: str) -> ActInterpretation:
 
     evidence: list[str] = []
 
-    if raw.endswith("?") or lower.startswith(("what ", "why ", "how ", "when ", "where ", "who ", "can you ", "could you ", "would you ")):
-        evidence.append("question_form")
-        return ActInterpretation(ConversationAct.QUESTION, 0.9, tuple(evidence))
+    request_starts = ("please ", "could you ", "can you ", "would you ", "i'd like ", "i would like ")
+    if lower.startswith(request_starts):
+        evidence.append("request_marker")
+        secondary: list[ConversationAct] = []
+        if raw.endswith("?") or lower.startswith(("could you ", "can you ", "would you ")):
+            evidence.append("question_form")
+            secondary.append(ConversationAct.QUESTION)
+        return ActInterpretation(
+            ConversationAct.REQUEST,
+            0.88,
+            tuple(evidence),
+            tuple(secondary),
+            execution_requested=True,
+        )
 
     if lower.startswith(("no, ", "no ", "actually ", "i mean ", "that's not ", "that is not ", "you mean ")):
         evidence.append("correction_marker")
@@ -67,10 +80,6 @@ def interpret_conversation_act(text: str) -> ActInterpretation:
         evidence.append("teaching_marker")
         return ActInterpretation(ConversationAct.TEACHING, 0.82, tuple(evidence))
 
-    if lower.startswith(("please ", "could you ", "can you ", "would you ", "i'd like ", "i would like ")):
-        evidence.append("request_marker")
-        return ActInterpretation(ConversationAct.REQUEST, 0.8, tuple(evidence))
-
     imperative_starts = (
         "open ", "close ", "start ", "stop ", "turn ", "set ", "move ",
         "send ", "delete ", "create ", "run ", "shut ", "unlock ", "lock ",
@@ -83,6 +92,10 @@ def interpret_conversation_act(text: str) -> ActInterpretation:
             tuple(evidence),
             execution_requested=True,
         )
+
+    if raw.endswith("?") or lower.startswith(("what ", "why ", "how ", "when ", "where ", "who ")):
+        evidence.append("question_form")
+        return ActInterpretation(ConversationAct.QUESTION, 0.9, tuple(evidence))
 
     if any(token in lower for token in ("lol", "haha", "😆", "😂")):
         evidence.append("humor_marker")
