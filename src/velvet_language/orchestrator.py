@@ -54,8 +54,8 @@ def orchestrate_turn(turn: TurnInput) -> TurnDecision:
     entities: Tuple[str, ...] = ()
     if turn.reference_text and turn.reference_candidates:
         reference = resolve_reference(turn.reference_text, turn.reference_candidates)
-        if reference.resolved_id:
-            entities = (reference.resolved_id,)
+        if reference.resolved_entity_id:
+            entities = (reference.resolved_entity_id,)
 
     next_state = turn.state.with_turn(entities=entities)
     requires_authority = strategy.requires_authority_check or act.execution_requested
