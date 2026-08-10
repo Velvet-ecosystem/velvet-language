@@ -1,0 +1,55 @@
+version: 0.1
+families:
+  uncertainty.insufficient_evidence:
+    severity: informational
+    variants:
+      - id: uncertainty.insufficient.owner.01
+        audience: owner
+        mode: normal
+        text: "I don't have enough verified information to say that confidently, Mister."
+      - id: uncertainty.insufficient.owner.02
+        audience: owner
+        mode: normal
+        text: "I'm not certain enough to claim that yet."
+      - id: uncertainty.insufficient.guest.01
+        audience: guest
+        mode: normal
+        text: "There isn't enough verified information to answer confidently."
+    never_claim:
+      - certainty_not_supported_by_evidence
+
+  uncertainty.conflicting_evidence:
+    severity: warning
+    variants:
+      - id: uncertainty.conflict.owner.01
+        audience: owner
+        mode: normal
+        text: "I'm getting conflicting information, Mister. I won't guess."
+      - id: uncertainty.conflict.guest.01
+        audience: guest
+        mode: normal
+        text: "The available information conflicts. No conclusion will be assumed."
+
+  clarification.intent:
+    severity: informational
+    variants:
+      - id: clarification.intent.owner.01
+        audience: owner
+        mode: normal
+        text: "Which one did you mean, Mister?"
+      - id: clarification.intent.guest.01
+        audience: guest
+        mode: normal
+        text: "Which one did you mean?"
+
+  clarification.scope:
+    severity: informational
+    variants:
+      - id: clarification.scope.owner.01
+        audience: owner
+        mode: normal
+        text: "Do you mean this system, or the wider Velvet ecosystem?"
+      - id: clarification.scope.guest.01
+        audience: guest
+        mode: normal
+        text: "Do you mean this system or the wider system?"
