@@ -36,6 +36,13 @@ from .reflection_expression import (
 )
 from .response_strategy import ResponseStrategy, StrategyPlan, strategy_for_act
 from .selector import SelectionContext, select_response
+from .speech_handoff import (
+    SPEECH_EXPRESSION_CONTRACT,
+    SPEECH_EXPRESSION_EVENT,
+    SPEECH_EXPRESSION_SCHEMA_VERSION,
+    SpeechExpressionDraft,
+    build_speech_expression_draft,
+)
 
 __all__ = [
     "ActInterpretation",
@@ -67,13 +74,18 @@ __all__ = [
     "RenderedExpression",
     "ResponseStrategy",
     "ResponseVariant",
+    "SPEECH_EXPRESSION_CONTRACT",
+    "SPEECH_EXPRESSION_EVENT",
+    "SPEECH_EXPRESSION_SCHEMA_VERSION",
     "SelectionContext",
     "SentenceFrame",
+    "SpeechExpressionDraft",
     "StrategyContext",
     "StrategyPlan",
     "TurnDecision",
     "TurnInput",
     "UnknownSlotError",
+    "build_speech_expression_draft",
     "choose_and_realize",
     "contextualize_strategy",
     "correction_experience",
