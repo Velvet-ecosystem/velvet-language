@@ -21,8 +21,9 @@ The capability ladder is:
 3. sentence frames and bounded grammar realization
 4. conversation acts, goals, reference resolution, and response strategy
 5. context-sensitive turn orchestration
-6. learned language competence promoted through governed Core review
-7. optional local or remote language-model assistance
+6. grounded question, reflection, capability, lexical, and analogy realization
+7. learned language competence promoted through governed Core review
+8. optional local or remote language-model assistance
 
 A language model may improve expression or provide temporary breadth. It must never become the sole owner of Velvet's ability to communicate.
 
@@ -34,6 +35,11 @@ A language model may improve expression or provide temporary breadth. It must ne
 - resolve references conservatively and request clarification when ambiguous
 - select response strategy according to act, audience, severity, urgency, mode, confidence, and recent context
 - construct language from approved response families, sentence frames, and grammar
+- realize upstream-approved curiosity questions without owning curiosity
+- express verified reflection without performing reflection or learning
+- express verified capability state without turning availability into authorization
+- maintain lexical terminology for externally defined concepts
+- construct analogies only from verified conceptual relationships
 - express uncertainty without bluffing
 - avoid needless repetition and permit intentional silence
 - provide deterministic fallback language during degraded operation
@@ -51,6 +57,8 @@ This repository does not:
 - own canonical memory admission or storage
 - own persona continuity
 - own Core learning or plasticity
+- own curiosity, reflection, pattern formation, or world-model truth
+- invent conceptual relationships for analogies
 - interpret raw sensors
 - operate CAN or vehicle hardware
 - capture microphones or route speaker hardware
@@ -89,6 +97,19 @@ Meaning comes in. Language goes out.
 
 Audio playback remains the responsibility of `velvet-audio-studio`. Operational authority remains the responsibility of `velvet-runtime` and Court.
 
+## Grounded Depth Adapters
+
+Some conversational depth begins elsewhere in the ecosystem and enters Language only for expression:
+
+```text
+Core curiosity --------> approved question candidate ---\
+Core reflection -------> verified reflection finding ----+--> velvet-language --> expression
+Runtime/body truth ----> capability state ---------------+
+Core/domain meaning ---> concept id + verified relation --/
+```
+
+The adapters never acquire the authority or cognitive ownership of their upstream source.
+
 ## Developmental Loop
 
 ```text
@@ -122,6 +143,9 @@ Velvet must never become poetic when the human needs precision.
 ├── docs/
 ├── schemas/
 ├── src/velvet_language/
+│   ├── analogy_realization.py
+│   ├── capability_expression.py
+│   ├── concept_lexicon.py
 │   ├── conversation_acts.py
 │   ├── conversation_state.py
 │   ├── context_strategy.py
@@ -132,7 +156,9 @@ Velvet must never become poetic when the human needs precision.
 │   ├── goals.py
 │   ├── orchestrator.py
 │   ├── planner.py
+│   ├── question_realization.py
 │   ├── reference_resolution.py
+│   ├── reflection_expression.py
 │   ├── response_strategy.py
 │   └── selector.py
 └── tests/
@@ -140,9 +166,9 @@ Velvet must never become poetic when the human needs precision.
 
 ## Relationship to Other Velvet Repositories
 
-- `velvet-ai-core`: cognition, canonical memory, learning, reflection, and governed plasticity
+- `velvet-ai-core`: cognition, canonical memory, curiosity, reflection, patterns, learning, and governed plasticity
 - `velvet-persona-continuity`: bounded persona policy and receipted recall context
-- `velvet-runtime`: verified identity context, authority, Court, coordination, and execution boundary
+- `velvet-runtime`: verified identity and capability context, authority, Court, coordination, and execution boundary
 - `velvet-receipts`: canonical append-only evidence
 - `velvet-audio-studio`: microphone capture, transcription front end, channel routing, and voice playback
 - `velvet-communications`: outward-facing project communication
@@ -151,4 +177,4 @@ Velvet must never become poetic when the human needs precision.
 
 ## Status
 
-Foundation stage. No Runtime, Court, memory, learning, receipt, or actuation authority is granted by this repository.
+Foundation plus grounded depth-adapter stage. No Runtime, Court, memory, learning, receipt, curiosity, reflection, world-model, or actuation authority is granted by this repository.
