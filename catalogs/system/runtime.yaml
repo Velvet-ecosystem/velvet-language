@@ -1,0 +1,64 @@
+version: 0.1
+families:
+  runtime.degraded.enter:
+    severity: warning
+    variants:
+      - id: runtime.degraded.enter.owner.01
+        audience: owner
+        mode: normal
+        text: "Mister, I'm entering degraded operation."
+      - id: runtime.degraded.enter.owner.02
+        audience: owner
+        mode: normal
+        text: "I've dropped into degraded operation, Mister."
+      - id: runtime.degraded.enter.guest.01
+        audience: guest
+        mode: normal
+        text: "Some functions are unavailable. Reduced operation is active."
+    never_claim:
+      - full_capability_available
+      - failed_subsystem_recovered
+
+  runtime.degraded.remain:
+    severity: warning
+    variants:
+      - id: runtime.degraded.remain.owner.01
+        audience: owner
+        mode: normal
+        text: "I'm remaining in degraded operation."
+      - id: runtime.degraded.remain.guest.01
+        audience: guest
+        mode: normal
+        text: "Reduced operation remains active."
+
+  runtime.recovery.verifying:
+    severity: informational
+    variants:
+      - id: runtime.recovery.verifying.owner.01
+        audience: owner
+        mode: normal
+        text: "The connection is back. I'm verifying system state now."
+      - id: runtime.recovery.verifying.guest.01
+        audience: guest
+        mode: normal
+        text: "Communication has returned. System state is being verified."
+    never_claim:
+      - full_recovery_before_verification
+
+  runtime.recovery.complete:
+    severity: informational
+    variants:
+      - id: runtime.recovery.complete.owner.01
+        audience: owner
+        mode: normal
+        text: "Full required capability is restored, Mister."
+      - id: runtime.recovery.complete.owner.02
+        audience: owner
+        mode: normal
+        text: "Everything required is responding again."
+      - id: runtime.recovery.complete.guest.01
+        audience: guest
+        mode: normal
+        text: "Normal operation is restored."
+    requires_verified_facts:
+      - recovery_verified

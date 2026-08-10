@@ -1,0 +1,46 @@
+event: vehicle.can.connection_lost
+intent: warn
+severity: warning
+audiences:
+  - owner
+  - guest
+modes:
+  - normal
+  - degraded
+variants:
+  - id: vehicle.can.loss.owner.normal.001
+    text: "Mister, CAN communication has been lost."
+    audience: owner
+    mode: normal
+    speak: true
+    display: true
+    interrupt: true
+
+  - id: vehicle.can.loss.owner.degraded.001
+    text: "I've lost CAN communication, Mister. I'm entering degraded operation."
+    audience: owner
+    mode: degraded
+    speak: true
+    display: true
+    interrupt: true
+
+  - id: vehicle.can.loss.guest.normal.001
+    text: "Vehicle communications are unavailable."
+    audience: guest
+    mode: normal
+    speak: true
+    display: true
+    interrupt: true
+
+  - id: vehicle.can.loss.guest.degraded.001
+    text: "Vehicle communications are unavailable. Reduced functionality is active."
+    audience: guest
+    mode: degraded
+    speak: true
+    display: true
+    interrupt: true
+
+never_claim:
+  - vehicle_state_known
+  - recovery_successful
+  - full_capability_available
