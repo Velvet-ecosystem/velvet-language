@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Tuple
+from typing import Tuple
 
-from .context_strategy import ContextStrategy, StrategyContext, apply_context_strategy
+from .context_strategy import ContextualStrategy, StrategyContext, contextualize_strategy
 from .conversation_acts import ActInterpretation, interpret_conversation_act
 from .conversation_state import ConversationState
 from .goals import ConversationGoal
@@ -25,7 +25,7 @@ class TurnInput:
 class TurnDecision:
     act: ActInterpretation
     strategy: StrategyPlan
-    contextual_strategy: ContextStrategy
+    contextual_strategy: ContextualStrategy
     reference: ReferenceResolution | None
     state: ConversationState
     goal: ConversationGoal | None
@@ -48,16 +48,16 @@ def orchestrate_turn(turn: TurnInput) -> TurnDecision:
 
     act = interpret_conversation_act(turn.text)
     strategy = strategy_for_act(act)
-    contextual = apply_context_strategy(strategy, turn.context)
+    contextual = contextualize_strategy(act, turn.context)
 
     reference = None
+    entities: Tuple[str, ...] = ()
     if turn.reference_text and turn.reference_candidates:
         reference = resolve_reference(turn.reference_text, turn.reference_candidates)
+        if reference.resolved_id:
+            entities = (reference.resolved_id,)
 
-    next_state = turn.state.next_turn()
-    if reference is not None and reference.resolved_id:
-        next_state = next_state.with_entity(reference.resolved_id)
-
+    next_state = turn.state.with_turn(entities=entities)
     requires_authority = strategy.requires_authority_check or act.execution_requested
 
     return TurnDecision(
@@ -68,5 +68,5 @@ def orchestrate_turn(turn: TurnInput) -> TurnDecision:
         state=next_state,
         goal=turn.goal,
         requires_authority_check=requires_authority,
-        may_speak=contextual.may_speak,
+        may_speak=contextual.should_speak,
     )
