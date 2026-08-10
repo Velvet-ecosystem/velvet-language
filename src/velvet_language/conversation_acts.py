@@ -64,7 +64,7 @@ def interpret_conversation_act(text: str) -> ActInterpretation:
             execution_requested=True,
         )
 
-    if lower.startswith(("no, ", "no ", "actually ", "i mean ", "that's not ", "that is not ", "you mean ")):
+    if lower.startswith(("no, ", "no ", "actually,", "actually ", "i mean ", "that's not ", "that is not ", "you mean ")):
         evidence.append("correction_marker")
         return ActInterpretation(ConversationAct.CORRECTION, 0.82, tuple(evidence))
 
