@@ -27,11 +27,18 @@ def test_reference_resolution_updates_ephemeral_state():
             state=state(),
             context=StrategyContext(),
             reference_text="it",
-            reference_candidates=(ReferenceCandidate("engine", "engine", 0.95),),
+            reference_candidates=(
+                ReferenceCandidate(
+                    entity_id="engine",
+                    label="engine",
+                    recency_rank=0,
+                    semantic_match=0.95,
+                ),
+            ),
         )
     )
     assert decision.reference is not None
-    assert decision.reference.resolved_id == "engine"
+    assert decision.reference.resolved_entity_id == "engine"
     assert "engine" in decision.state.recent_entities
 
 
