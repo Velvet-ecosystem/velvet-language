@@ -6,7 +6,11 @@
 
 It does not own sensors, canonical memory, cognition, authority, actuation, or audio hardware. It receives structured meaning and bounded context from trusted Velvet systems and turns them into human language for speech, text, UI surfaces, alerts, explanations, questions, and conversation.
 
+---------
+
 **Velvet explores an unusual developmental language architecture in which verified meaning precedes speech, language competence can grow through governed experience, and generative models remain optional rather than foundational.**
+
+---------
 
 ## Core Doctrine
 
