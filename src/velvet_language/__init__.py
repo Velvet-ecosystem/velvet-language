@@ -18,6 +18,7 @@ from .goals import ConversationGoal, GoalStatus, update_goal
 from .models import MeaningPacket, RenderedExpression, ResponseVariant
 from .planner import ConversationPlan, plan_response
 from .reference_resolution import ReferenceCandidate, ReferenceResolution, resolve_reference
+from .response_strategy import ResponseStrategy, StrategyPlan, strategy_for_act
 from .selector import SelectionContext, select_response
 
 __all__ = [
@@ -36,9 +37,11 @@ __all__ = [
     "ReferenceCandidate",
     "ReferenceResolution",
     "RenderedExpression",
+    "ResponseStrategy",
     "ResponseVariant",
     "SelectionContext",
     "SentenceFrame",
+    "StrategyPlan",
     "UnknownSlotError",
     "choose_and_realize",
     "correction_experience",
@@ -50,5 +53,6 @@ __all__ = [
     "render_fallback",
     "resolve_reference",
     "select_response",
+    "strategy_for_act",
     "update_goal",
 ]
