@@ -7,7 +7,7 @@ name = "velvet-language"
 version = "0.1.0"
 description = "Provider-neutral language and conversation organ for the Velvet ecosystem"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 license = {text = "Proprietary"}
 authors = [
   {name = "Velvet Ecosystem"}
