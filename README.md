@@ -178,3 +178,7 @@ Velvet must never become poetic when the human needs precision.
 ## Status
 
 Foundation plus grounded depth-adapter stage. No Runtime, Court, memory, learning, receipt, curiosity, reflection, world-model, or actuation authority is granted by this repository.
+
+## License
+
+`velvet-language` is licensed under the GNU General Public License v3.0 only (`GPL-3.0-only`). See `LICENSE` for the full terms.
