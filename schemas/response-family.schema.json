@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://velvet.local/schemas/response-family.schema.json",
+  "title": "Velvet Language Response Family",
+  "type": "object",
+  "required": ["event", "severity", "variants"],
+  "properties": {
+    "event": {"type": "string", "minLength": 1},
+    "intent": {"type": "string"},
+    "severity": {
+      "type": "string",
+      "enum": ["casual", "informational", "warning", "critical", "emergency"]
+    },
+    "audiences": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "modes": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "text": {"type": "string", "minLength": 1},
+          "audience": {"type": "string"},
+          "mode": {"type": "string"},
+          "speak": {"type": "boolean"},
+          "display": {"type": "boolean"},
+          "interrupt": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "never_claim": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false
+}
