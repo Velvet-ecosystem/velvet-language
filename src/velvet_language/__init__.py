@@ -1,5 +1,6 @@
 """Velvet Language public surface."""
 
+from .context_strategy import ContextualStrategy, StrategyContext, contextualize_strategy
 from .conversation_acts import ActInterpretation, ConversationAct, interpret_conversation_act
 from .conversation_state import ConversationState
 from .experience import LanguageExperience, correction_experience
@@ -23,6 +24,7 @@ from .selector import SelectionContext, select_response
 
 __all__ = [
     "ActInterpretation",
+    "ContextualStrategy",
     "ConversationAct",
     "ConversationGoal",
     "ConversationPlan",
@@ -41,9 +43,11 @@ __all__ = [
     "ResponseVariant",
     "SelectionContext",
     "SentenceFrame",
+    "StrategyContext",
     "StrategyPlan",
     "UnknownSlotError",
     "choose_and_realize",
+    "contextualize_strategy",
     "correction_experience",
     "evaluate_experiences",
     "infer_slots",
