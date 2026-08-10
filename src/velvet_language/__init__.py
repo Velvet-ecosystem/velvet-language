@@ -1,5 +1,6 @@
 """Velvet Language public surface."""
 
+from .conversation_acts import ActInterpretation, ConversationAct, interpret_conversation_act
 from .conversation_state import ConversationState
 from .experience import LanguageExperience, correction_experience
 from .experience_evaluator import LanguagePromotionCandidate, evaluate_experiences
@@ -20,6 +21,8 @@ from .reference_resolution import ReferenceCandidate, ReferenceResolution, resol
 from .selector import SelectionContext, select_response
 
 __all__ = [
+    "ActInterpretation",
+    "ConversationAct",
     "ConversationGoal",
     "ConversationPlan",
     "ConversationState",
@@ -41,6 +44,7 @@ __all__ = [
     "correction_experience",
     "evaluate_experiences",
     "infer_slots",
+    "interpret_conversation_act",
     "plan_response",
     "realize_frame",
     "render_fallback",
