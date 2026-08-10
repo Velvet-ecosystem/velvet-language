@@ -4,11 +4,15 @@ from velvet_language.orchestrator import TurnInput, orchestrate_turn
 from velvet_language.reference_resolution import ReferenceCandidate
 
 
+def state(turn_count: int = 0) -> ConversationState:
+    return ConversationState(conversation_id="test-conversation", turn_count=turn_count)
+
+
 def test_request_requires_authority_without_granting_it():
     decision = orchestrate_turn(
         TurnInput(
             text="Can you open the window?",
-            state=ConversationState(),
+            state=state(),
             context=StrategyContext(),
         )
     )
@@ -20,7 +24,7 @@ def test_reference_resolution_updates_ephemeral_state():
     decision = orchestrate_turn(
         TurnInput(
             text="What about it?",
-            state=ConversationState(),
+            state=state(),
             context=StrategyContext(),
             reference_text="it",
             reference_candidates=(ReferenceCandidate("engine", "engine", 0.95),),
@@ -35,7 +39,7 @@ def test_high_driving_load_can_reduce_speech():
     decision = orchestrate_turn(
         TurnInput(
             text="That was clever lol",
-            state=ConversationState(),
+            state=state(),
             context=StrategyContext(driving_load="high"),
         )
     )
@@ -43,7 +47,8 @@ def test_high_driving_load_can_reduce_speech():
 
 
 def test_turn_count_advances_without_creating_memory():
-    state = ConversationState(turn_count=3)
-    decision = orchestrate_turn(TurnInput(text="The engine sounds rough", state=state, context=StrategyContext()))
+    decision = orchestrate_turn(
+        TurnInput(text="The engine sounds rough", state=state(3), context=StrategyContext())
+    )
     assert decision.state.turn_count == 4
     assert decision.authority_granted is False
