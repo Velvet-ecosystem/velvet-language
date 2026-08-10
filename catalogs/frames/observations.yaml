@@ -1,0 +1,65 @@
+version: "0.1"
+
+families:
+  - id: observation.condition.mild
+    severity: informational
+    frames:
+      - id: observation.condition.mild.01
+        template: "The {subject} is {condition} a bit."
+        required_slots: [subject, condition]
+      - id: observation.condition.mild.02
+        template: "Mister, the {subject} is {condition} slightly."
+        required_slots: [subject, condition]
+      - id: observation.condition.mild.03
+        template: "I'm noticing a little {condition} from the {subject}."
+        required_slots: [condition, subject]
+
+  - id: observation.condition.increasing
+    severity: warning
+    frames:
+      - id: observation.condition.increasing.01
+        template: "Mister, the {subject} is {condition} more than {reference}."
+        required_slots: [subject, condition, reference]
+      - id: observation.condition.increasing.02
+        template: "The {subject} is showing more {condition} than {reference}."
+        required_slots: [subject, condition, reference]
+
+  - id: observation.measurement.above
+    severity: warning
+    frames:
+      - id: observation.measurement.above.01
+        template: "Mister, {measurement} is {amount} above {reference}."
+        required_slots: [measurement, amount, reference]
+      - id: observation.measurement.above.02
+        template: "{Measurement} is running {amount} above {reference}."
+        required_slots: [Measurement, amount, reference]
+
+  - id: observation.measurement.below
+    severity: warning
+    frames:
+      - id: observation.measurement.below.01
+        template: "Mister, {measurement} is {amount} below {reference}."
+        required_slots: [measurement, amount, reference]
+      - id: observation.measurement.below.02
+        template: "{Measurement} has fallen {amount} below {reference}."
+        required_slots: [Measurement, amount, reference]
+
+  - id: observation.connection.degraded
+    severity: warning
+    frames:
+      - id: observation.connection.degraded.01
+        template: "The {subject} is {condition} a bit."
+        required_slots: [subject, condition]
+      - id: observation.connection.degraded.02
+        template: "Mister, I'm seeing some {condition} on the {subject}."
+        required_slots: [condition, subject]
+
+  - id: observation.recovery
+    severity: informational
+    frames:
+      - id: observation.recovery.01
+        template: "The {subject} is back to {state}."
+        required_slots: [subject, state]
+      - id: observation.recovery.02
+        template: "Mister, the {subject} has returned to {state}."
+        required_slots: [subject, state]
