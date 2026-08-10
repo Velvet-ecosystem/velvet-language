@@ -8,6 +8,14 @@ def test_question_detected():
     assert result.authority_granted is False
 
 
+def test_polite_question_form_is_practical_request():
+    result = interpret_conversation_act("Can you open the window?")
+    assert result.act is ConversationAct.REQUEST
+    assert ConversationAct.QUESTION in result.secondary_acts
+    assert result.execution_requested is True
+    assert result.authority_granted is False
+
+
 def test_correction_detected():
     result = interpret_conversation_act("Actually, I'd call that sputtering")
     assert result.act is ConversationAct.CORRECTION
