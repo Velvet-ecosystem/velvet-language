@@ -13,19 +13,25 @@ from .frames import (
     infer_slots,
     realize_frame,
 )
+from .goals import ConversationGoal, GoalStatus, update_goal
 from .models import MeaningPacket, RenderedExpression, ResponseVariant
 from .planner import ConversationPlan, plan_response
+from .reference_resolution import ReferenceCandidate, ReferenceResolution, resolve_reference
 from .selector import SelectionContext, select_response
 
 __all__ = [
+    "ConversationGoal",
     "ConversationPlan",
     "ConversationState",
     "FallbackExpression",
+    "GoalStatus",
     "LanguageExperience",
     "LanguagePromotionCandidate",
     "MeaningPacket",
     "MissingSlotError",
     "RealizedFrame",
+    "ReferenceCandidate",
+    "ReferenceResolution",
     "RenderedExpression",
     "ResponseVariant",
     "SelectionContext",
@@ -38,5 +44,7 @@ __all__ = [
     "plan_response",
     "realize_frame",
     "render_fallback",
+    "resolve_reference",
     "select_response",
+    "update_goal",
 ]
