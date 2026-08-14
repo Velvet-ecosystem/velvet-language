@@ -36,6 +36,12 @@ from .reflection_expression import (
 )
 from .response_strategy import ResponseStrategy, StrategyPlan, strategy_for_act
 from .selector import SelectionContext, select_response
+from .self_health_expression import (
+    SelfHealthExpressionInput,
+    build_self_health_speech_draft,
+    realize_self_health,
+    self_health_input_from_event,
+)
 from .speech_handoff import (
     SPEECH_EXPRESSION_CONTRACT,
     SPEECH_EXPRESSION_EVENT,
@@ -78,6 +84,7 @@ __all__ = [
     "SPEECH_EXPRESSION_EVENT",
     "SPEECH_EXPRESSION_SCHEMA_VERSION",
     "SelectionContext",
+    "SelfHealthExpressionInput",
     "SentenceFrame",
     "SpeechExpressionDraft",
     "StrategyContext",
@@ -85,6 +92,7 @@ __all__ = [
     "TurnDecision",
     "TurnInput",
     "UnknownSlotError",
+    "build_self_health_speech_draft",
     "build_speech_expression_draft",
     "choose_and_realize",
     "contextualize_strategy",
@@ -99,9 +107,11 @@ __all__ = [
     "realize_frame",
     "realize_question",
     "realize_reflection",
+    "realize_self_health",
     "render_fallback",
     "resolve_reference",
     "select_response",
+    "self_health_input_from_event",
     "strategy_for_act",
     "update_goal",
 ]
