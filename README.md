@@ -177,7 +177,7 @@ Velvet must never become poetic when the human needs precision.
 - `velvet-runtime`: verified identity and capability context, authority, Court, coordination, and execution boundary
 - `velvet-receipts`: canonical append-only evidence
 - `velvet-audio-studio`: microphone capture, transcription front end, channel routing, and voice playback
-- `velvet-communications`: outward-facing project communication
+- `velvet-communications`: transport-neutral cross-node and cross-body carriage, V2V federation, carrier selection/fallback, relays, and degraded/off-grid delivery; it does not own language meaning or conversational authority
 
 `velvet-language` owns expression, not the truth sources that feed it and not the authority that may follow from a request.
 
