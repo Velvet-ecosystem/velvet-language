@@ -42,13 +42,22 @@ class ResponderExpressionInput:
 
     def __post_init__(self) -> None:
         for name in ("incident_id", "question_id"):
-            value = getattr(self, name)
-            if not isinstance(value, str) or not value.strip():
+            raw = getattr(self, name)
+            if not isinstance(raw, str) or not raw.strip():
                 raise ValueError("{} must be a non-empty string".format(name))
+            if len(raw.strip()) > 128:
+                raise ValueError("{} exceeds 128 characters".format(name))
+        if self.fact_id is not None and len(self.fact_id.strip()) > 128:
+            raise ValueError("fact_id exceeds 128 characters")
         if self.authority != "none":
             raise ValueError("responder expression input cannot carry authority")
-        if any(not isinstance(item, str) or not item.strip() for item in self.qualifiers):
-            raise ValueError("qualifiers must contain non-empty strings")
+        if len(self.qualifiers) > 4:
+            raise ValueError("responder expression supports at most four qualifiers")
+        for item in self.qualifiers:
+            if not isinstance(item, str) or not item.strip():
+                raise ValueError("qualifiers must contain non-empty strings")
+            if len(item.strip()) > 256:
+                raise ValueError("responder qualifier exceeds 256 characters")
 
         if self.response_kind is ResponderResponseKind.FACT:
             if self.truth_class not in {
@@ -79,14 +88,21 @@ def responder_input_from_plan(plan: Mapping[str, Any]) -> ResponderExpressionInp
     """Parse a serialized Medical Mobility responder answer plan.
 
     The adapter accepts only the authority-free semantic fields Language needs.
-    Source references and disclosure internals intentionally do not enter the
-    spoken expression object.
+    Source references and unrelated disclosure internals intentionally do not
+    enter the spoken expression object.
     """
 
     if not isinstance(plan, Mapping):
         raise TypeError("responder answer plan must be a mapping")
 
     kind = ResponderResponseKind(_required_text(plan.get("response_kind"), "response_kind"))
+    disclosure = _required_text(plan.get("disclosure_decision"), "disclosure_decision")
+    if kind is ResponderResponseKind.WITHHELD:
+        if disclosure != "withhold":
+            raise ValueError("withheld response requires withhold disclosure decision")
+    elif disclosure != "allow":
+        raise ValueError("speakable response requires allow disclosure decision")
+
     raw_truth = plan.get("truth_class")
     truth = None if raw_truth is None else ResponderTruthClass(_required_text(raw_truth, "truth_class"))
     raw_qualifiers = plan.get("qualifiers") or ()
@@ -130,7 +146,7 @@ def realize_responder_answer(value: ResponderExpressionInput) -> RenderedExpress
             if item not in {"inferred", "stale", "unavailable"}
         ]
         if spoken_qualifiers:
-            text = "{} {}".format(text.rstrip("."), ". ".join(spoken_qualifiers)).rstrip() + "."
+            text = _sentence(text) + " " + " ".join(_sentence(item) for item in spoken_qualifiers)
 
     return RenderedExpression(
         response_id="responder-{}-{}".format(value.incident_id.strip(), value.question_id.strip()),
@@ -152,6 +168,8 @@ def realize_responder_introduction(
     """Provide the deterministic role disclosure at responder-session start."""
 
     incident = _required_text(incident_id, "incident_id")
+    if len(incident) > 128:
+        raise ValueError("incident_id exceeds 128 characters")
     if occupant_may_be_unable:
         text = (
             "This is Velvet, the vehicle's automated local assistant. "
@@ -235,6 +253,13 @@ def _bounded_value_text(value: Any) -> str:
 
 def _lower_first(text: str) -> str:
     return text[:1].lower() + text[1:] if text else text
+
+
+def _sentence(text: str) -> str:
+    cleaned = " ".join(text.split()).strip()
+    if not cleaned:
+        return cleaned
+    return cleaned if cleaned.endswith((".", "?", "!")) else cleaned + "."
 
 
 def _required_text(value: Any, name: str) -> str:
