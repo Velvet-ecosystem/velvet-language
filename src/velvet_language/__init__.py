@@ -34,6 +34,15 @@ from .reflection_expression import (
     ReflectionExpressionInput,
     realize_reflection,
 )
+from .responder_expression import (
+    ResponderExpressionInput,
+    ResponderResponseKind,
+    ResponderTruthClass,
+    build_responder_speech_draft,
+    realize_responder_answer,
+    realize_responder_introduction,
+    responder_input_from_plan,
+)
 from .response_strategy import ResponseStrategy, StrategyPlan, strategy_for_act
 from .selector import SelectionContext, select_response
 from .self_health_expression import (
@@ -78,6 +87,9 @@ __all__ = [
     "ReflectionExpression",
     "ReflectionExpressionInput",
     "RenderedExpression",
+    "ResponderExpressionInput",
+    "ResponderResponseKind",
+    "ResponderTruthClass",
     "ResponseStrategy",
     "ResponseVariant",
     "SPEECH_EXPRESSION_CONTRACT",
@@ -92,6 +104,7 @@ __all__ = [
     "TurnDecision",
     "TurnInput",
     "UnknownSlotError",
+    "build_responder_speech_draft",
     "build_self_health_speech_draft",
     "build_speech_expression_draft",
     "choose_and_realize",
@@ -107,8 +120,11 @@ __all__ = [
     "realize_frame",
     "realize_question",
     "realize_reflection",
+    "realize_responder_answer",
+    "realize_responder_introduction",
     "realize_self_health",
     "render_fallback",
+    "responder_input_from_plan",
     "resolve_reference",
     "select_response",
     "self_health_input_from_event",
