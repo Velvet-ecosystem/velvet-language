@@ -47,8 +47,11 @@ class ResponderExpressionInput:
                 raise ValueError("{} must be a non-empty string".format(name))
             if len(raw.strip()) > 128:
                 raise ValueError("{} exceeds 128 characters".format(name))
-        if self.fact_id is not None and len(self.fact_id.strip()) > 128:
-            raise ValueError("fact_id exceeds 128 characters")
+        if self.fact_id is not None:
+            if not isinstance(self.fact_id, str) or not self.fact_id.strip():
+                raise ValueError("fact_id must be a non-empty string when supplied")
+            if len(self.fact_id.strip()) > 128:
+                raise ValueError("fact_id exceeds 128 characters")
         if self.authority != "none":
             raise ValueError("responder expression input cannot carry authority")
         if len(self.qualifiers) > 4:
@@ -66,7 +69,7 @@ class ResponderExpressionInput:
                 ResponderTruthClass.STALE,
             }:
                 raise ValueError("fact responses require known, inferred, or stale truth")
-            if not isinstance(self.fact_id, str) or not self.fact_id.strip():
+            if self.fact_id is None:
                 raise ValueError("fact responses require fact_id")
             if self.value is None:
                 raise ValueError("fact responses require a value")
@@ -108,6 +111,7 @@ def responder_input_from_plan(plan: Mapping[str, Any]) -> ResponderExpressionInp
     raw_qualifiers = plan.get("qualifiers") or ()
     if isinstance(raw_qualifiers, str) or not isinstance(raw_qualifiers, (list, tuple)):
         raise ValueError("qualifiers must be a list or tuple")
+    qualifiers = tuple(_required_text(item, "qualifier") for item in raw_qualifiers)
 
     return ResponderExpressionInput(
         incident_id=_required_text(plan.get("incident_id"), "incident_id"),
@@ -116,7 +120,7 @@ def responder_input_from_plan(plan: Mapping[str, Any]) -> ResponderExpressionInp
         fact_id=_optional_text(plan.get("fact_id")),
         truth_class=truth,
         value=plan.get("value"),
-        qualifiers=tuple(str(item).strip() for item in raw_qualifiers),
+        qualifiers=qualifiers,
         authority=_required_text(plan.get("authority", "none"), "authority"),
     )
 
