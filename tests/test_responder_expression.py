@@ -68,8 +68,10 @@ def test_stale_fact_is_explicitly_last_known():
         )
     )
 
-    assert expression.text.startswith("Last known: The vehicle location is last-known-fix.")
-    assert "Last verified 90 seconds ago." in expression.text
+    assert expression.text == (
+        "Last known: The vehicle location is last-known-fix. "
+        "Last verified 90 seconds ago."
+    )
 
 
 def test_unavailable_answer_cannot_carry_or_invent_a_value():
@@ -149,6 +151,34 @@ def test_serialized_medical_plan_parses_without_source_or_disclosure_metadata():
 
     assert expression.text == "The vehicle is stationary."
     assert not hasattr(value, "source_refs")
+
+
+def test_malformed_plan_fields_fail_closed():
+    base = {
+        "incident_id": "incident-42",
+        "question_id": "q-7",
+        "response_kind": "fact",
+        "truth_class": "known",
+        "fact_id": "vehicle.stationary",
+        "value": True,
+        "qualifiers": [],
+        "authority": "none",
+        "disclosure_decision": "allow",
+    }
+
+    with pytest.raises(ValueError, match="qualifier"):
+        responder_input_from_plan({**base, "qualifiers": [None]})
+
+    with pytest.raises(ValueError, match="optional text"):
+        responder_input_from_plan({**base, "fact_id": 42})
+
+    with pytest.raises(ValueError, match="disclosure decision"):
+        responder_input_from_plan({**base, "disclosure_decision": "withhold"})
+
+
+def test_direct_non_string_fact_id_fails_cleanly():
+    with pytest.raises(ValueError, match="fact_id"):
+        _fact(fact_id=42)
 
 
 def test_responder_introduction_identifies_velvet_without_impersonation():
