@@ -103,6 +103,36 @@ Meaning comes in. Language goes out.
 
 Audio playback remains the responsibility of `velvet-audio-studio`. Operational authority remains the responsibility of `velvet-runtime` and Court.
 
+## Written Conversation Path
+
+The shared conversation path gives Velvet a real local text ingress without creating a second conversation engine.
+
+```text
+keyboard / UI text ---------\
+                            +--> ConversationGateway --> turn orchestration
+Vosk speech transcript -----/             |
+                                          +--> normalized conversation event
+                                          |    for Core / Runtime integration
+                                          |
+                                          +--> truthful deterministic baseline
+                                               when no richer grounded responder
+                                               is connected
+```
+
+`ConversationGateway` owns only ephemeral session state and Language-side turn interpretation. Typed text and speech transcripts use the same contract, so the future microphone path does not need a separate brain or command parser.
+
+Action-like turns may set `requires_authority_check=true`; they can never grant authority. Corrections and teaching turns may become language-learning evidence, but they do not silently become canonical memory.
+
+For bench and development use, installation exposes a tiny local terminal surface:
+
+```bash
+velvet-chat
+```
+
+The console supports `/debug` to show the interpreted act, response strategy, and authority-check flag for each turn. The deterministic baseline deliberately refuses to invent answers when a richer trusted meaning source is not yet connected.
+
+The normalized `velvet.language.conversation.turn` event is intended to travel later through the local Velvet Gateway used by interface/runtime integration. Transport remains outside this repository.
+
 ## Grounded Depth Adapters
 
 Some conversational depth begins elsewhere in the ecosystem and enters Language only for expression:
@@ -153,6 +183,7 @@ Velvet must never become poetic when the human needs precision.
 │   ├── capability_expression.py
 │   ├── concept_lexicon.py
 │   ├── conversation_acts.py
+│   ├── conversation_gateway.py
 │   ├── conversation_state.py
 │   ├── context_strategy.py
 │   ├── experience.py
@@ -166,6 +197,7 @@ Velvet must never become poetic when the human needs precision.
 │   ├── reference_resolution.py
 │   ├── reflection_expression.py
 │   ├── response_strategy.py
+│   ├── text_console.py
 │   └── selector.py
 └── tests/
 ```
@@ -183,7 +215,7 @@ Velvet must never become poetic when the human needs precision.
 
 ## Status
 
-Foundation plus grounded depth-adapter stage. No Runtime, Court, memory, learning, receipt, curiosity, reflection, world-model, or actuation authority is granted by this repository.
+Foundation plus grounded depth-adapter stage, now including a shared written/speech-transcript conversation ingress and local terminal smoke-test surface. No Runtime, Court, memory, learning, receipt, curiosity, reflection, world-model, or actuation authority is granted by this repository.
 
 ## License
 
