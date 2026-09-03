@@ -8,12 +8,33 @@ def test_question_detected():
     assert result.authority_granted is False
 
 
-def test_polite_question_form_is_practical_request():
+def test_informational_polite_request_is_question_not_execution():
+    for text in (
+        "Can you tell me the cabin temperature?",
+        "Could you tell me the vehicle voltage",
+        "Please tell me the outside temperature",
+        "Tell me the cabin humidity",
+        "Can you explain the ignition state?",
+    ):
+        result = interpret_conversation_act(text)
+        assert result.act is ConversationAct.QUESTION
+        assert result.execution_requested is False
+        assert "informational_request" in result.evidence
+        assert result.authority_granted is False
+
+
+def test_practical_polite_request_still_requires_execution_path():
     result = interpret_conversation_act("Can you open the window?")
     assert result.act is ConversationAct.REQUEST
     assert ConversationAct.QUESTION in result.secondary_acts
     assert result.execution_requested is True
     assert result.authority_granted is False
+
+
+def test_copula_question_without_question_mark_is_still_question():
+    result = interpret_conversation_act("Is the ignition on")
+    assert result.act is ConversationAct.QUESTION
+    assert result.execution_requested is False
 
 
 def test_correction_detected():
