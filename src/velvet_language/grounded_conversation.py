@@ -13,11 +13,14 @@ from typing import Any, Mapping, Optional, Tuple
 
 CORE_CONVERSATION_MEANING_EVENT = "velvet.core.conversation.meaning"
 CORE_CONVERSATION_SCHEMA_VERSION = "0.1"
+MAX_SYNTHESIS_SOURCES = 3
+_ALLOWED_EVIDENCE_DISPOSITIONS = frozenset({"corroborated", "conflicted", "mixed"})
 
 
 class GroundedResponseKind(str, Enum):
     FACT = "fact"
     EVIDENCE = "evidence"
+    SYNTHESIS = "synthesis"
     UNAVAILABLE = "unavailable"
     ACKNOWLEDGE = "acknowledge"
     AUTHORITY_REQUIRED = "authority_required"
@@ -34,6 +37,9 @@ class CoreConversationMeaning:
     value: Any = None
     unit: Optional[str] = None
     source_label: Optional[str] = None
+    source_labels: Tuple[str, ...] = ()
+    evidence_values: Tuple[str, ...] = ()
+    evidence_disposition: Optional[str] = None
     qualifiers: Tuple[str, ...] = ()
     source_refs: Tuple[str, ...] = ()
     requires_authority_check: bool = False
@@ -61,6 +67,8 @@ class CoreConversationMeaning:
             _require_text("unit", self.unit)
         if self.source_label is not None:
             _require_text("source_label", self.source_label)
+        _require_text_tuple("source_labels", self.source_labels)
+        _require_text_tuple("evidence_values", self.evidence_values)
         _require_text_tuple("qualifiers", self.qualifiers)
         _require_text_tuple("source_refs", self.source_refs)
         if not isinstance(self.requires_authority_check, bool):
@@ -74,6 +82,7 @@ class CoreConversationMeaning:
             if self.fact_id is None:
                 raise ValueError("fact response requires fact_id")
             _require_scalar("value", self.value)
+            self._reject_synthesis_fields()
         elif self.response_kind is GroundedResponseKind.EVIDENCE:
             if self.fact_id is None:
                 raise ValueError("evidence response requires fact_id")
@@ -84,8 +93,32 @@ class CoreConversationMeaning:
             _require_scalar("value", self.value)
             if not isinstance(self.value, str) or not self.value.strip():
                 raise ValueError("evidence response value must be non-empty text")
-        elif self.value is not None:
-            raise ValueError("non-fact response cannot carry value")
+            self._reject_synthesis_fields()
+        elif self.response_kind is GroundedResponseKind.SYNTHESIS:
+            if self.fact_id is None:
+                raise ValueError("synthesis response requires fact_id")
+            if self.source_label is not None:
+                raise ValueError("synthesis response uses source_labels")
+            if self.evidence_disposition not in _ALLOWED_EVIDENCE_DISPOSITIONS:
+                raise ValueError("unsupported evidence disposition")
+            if not 2 <= len(self.source_labels) <= MAX_SYNTHESIS_SOURCES:
+                raise ValueError("synthesis response requires two or three source labels")
+            if len(self.evidence_values) != len(self.source_labels):
+                raise ValueError("synthesis evidence values must align with source labels")
+            if not self.source_refs:
+                raise ValueError("synthesis response requires source refs")
+            if self.value is not None:
+                _require_scalar("value", self.value)
+                if isinstance(self.value, str) and not self.value.strip():
+                    raise ValueError("synthesis value cannot be blank")
+        else:
+            if self.value is not None:
+                raise ValueError("non-fact response cannot carry value")
+            self._reject_synthesis_fields()
+
+    def _reject_synthesis_fields(self) -> None:
+        if self.source_labels or self.evidence_values or self.evidence_disposition is not None:
+            raise ValueError("non-synthesis response cannot carry synthesis fields")
 
 
 @dataclass(frozen=True)
@@ -126,6 +159,9 @@ def core_conversation_meaning_from_event(event: Mapping[str, Any]) -> CoreConver
         value=event.get("value"),
         unit=_optional_text(event.get("unit")),
         source_label=_optional_text(event.get("source_label")),
+        source_labels=_text_sequence(event.get("source_labels", ()), "source_labels"),
+        evidence_values=_text_sequence(event.get("evidence_values", ()), "evidence_values"),
+        evidence_disposition=_optional_text(event.get("evidence_disposition")),
         qualifiers=_text_sequence(event.get("qualifiers", ()), "qualifiers"),
         source_refs=_text_sequence(event.get("source_refs", ()), "source_refs"),
         requires_authority_check=event.get("requires_authority_check", False),
@@ -164,6 +200,8 @@ def realize_core_conversation_meaning(event: Mapping[str, Any]) -> GroundedConve
             )
         else:
             text = "Velour found this in %s: %s" % (meaning.source_label, excerpt)
+    elif meaning.response_kind is GroundedResponseKind.SYNTHESIS:
+        text = _realize_synthesis(meaning)
     elif meaning.response_kind is GroundedResponseKind.AUTHORITY_REQUIRED:
         text = "I understand the request. Runtime authorization is required before any action can occur."
     elif meaning.response_kind is GroundedResponseKind.ACKNOWLEDGE:
@@ -179,6 +217,57 @@ def realize_core_conversation_meaning(event: Mapping[str, Any]) -> GroundedConve
         confidence=float(meaning.confidence),
         source_refs=meaning.source_refs,
     )
+
+
+def _realize_synthesis(meaning: CoreConversationMeaning) -> str:
+    count = len(meaning.source_labels)
+    qualifier_set = {item.casefold() for item in meaning.qualifiers}
+    if meaning.evidence_disposition == "corroborated":
+        if "comparison:normalized-measurement" in qualifier_set:
+            text = "Velour compared %d Library sources. They agree on %s." % (
+                count,
+                str(meaning.value).strip(),
+            )
+        else:
+            text = "Velour compared %d Library sources. They point to the same guidance: %s" % (
+                count,
+                str(meaning.value).strip(),
+            )
+    elif meaning.evidence_disposition == "conflicted":
+        text = "Velour found conflicting Library evidence: %s. I won't collapse that into one answer." % (
+            _render_source_pairs(meaning, max_pairs=3, value_limit=100),
+        )
+    else:
+        text = "Velour found several relevant Library passages, but they don't support one clean answer: %s" % (
+            _render_source_pairs(meaning, max_pairs=2, value_limit=150),
+        )
+
+    if "source-superseded" in qualifier_set:
+        text += " One or more sources have been superseded."
+    elif "source-stale" in qualifier_set:
+        text += " One or more sources are marked stale."
+    return text
+
+
+def _render_source_pairs(
+    meaning: CoreConversationMeaning,
+    *,
+    max_pairs: int,
+    value_limit: int,
+) -> str:
+    rendered = []
+    for label, value in zip(meaning.source_labels[:max_pairs], meaning.evidence_values[:max_pairs]):
+        short_label = _clip_text(label, 80)
+        short_value = _clip_text(value, value_limit)
+        rendered.append("%s: %s" % (short_label, short_value))
+    return "; ".join(rendered)
+
+
+def _clip_text(value: str, limit: int) -> str:
+    clean = " ".join(value.split())
+    if len(clean) <= limit:
+        return clean
+    return clean[: limit - 1].rstrip() + "…"
 
 
 def _fact_label(fact_id: str) -> str:
