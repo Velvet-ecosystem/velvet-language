@@ -14,6 +14,9 @@ authors = [
 ]
 dependencies = []
 
+[project.scripts]
+velvet-chat = "velvet_language.text_console:main"
+
 [project.optional-dependencies]
 test = [
   "pytest>=7.4,<8; python_version < '3.9'",
