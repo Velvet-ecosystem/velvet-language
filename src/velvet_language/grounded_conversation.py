@@ -1,6 +1,6 @@
 """Realize structured Core conversation meaning into human language.
 
-Core owns verified meaning.  This module owns the final deterministic wording
+Core owns verified meaning. This module owns the final deterministic wording
 for that meaning and rejects any Core payload that attempts to carry authority
 or execution claims across the Language boundary.
 """
@@ -90,23 +90,17 @@ class GroundedConversationExpression:
             raise ValueError("grounded conversation expression cannot grant authority")
 
 
-def core_conversation_meaning_from_event(
-    event: Mapping[str, Any],
-) -> CoreConversationMeaning:
-    """Parse and validate Core's structured conversation meaning event."""
-
+def core_conversation_meaning_from_event(event: Mapping[str, Any]) -> CoreConversationMeaning:
     if not isinstance(event, Mapping):
         raise TypeError("Core conversation meaning must be a mapping")
     if event.get("event") != CORE_CONVERSATION_MEANING_EVENT:
         raise ValueError("unexpected Core conversation meaning event")
     if event.get("schema_version") != CORE_CONVERSATION_SCHEMA_VERSION:
         raise ValueError("unsupported Core conversation schema version")
-
     try:
         response_kind = GroundedResponseKind(str(event.get("response_kind")))
     except ValueError as exc:
         raise ValueError("unsupported grounded response kind") from exc
-
     return CoreConversationMeaning(
         conversation_id=_text_value(event, "conversation_id"),
         turn_id=_text_value(event, "turn_id"),
@@ -126,13 +120,8 @@ def core_conversation_meaning_from_event(
     )
 
 
-def realize_core_conversation_meaning(
-    event: Mapping[str, Any],
-) -> GroundedConversationExpression:
-    """Turn validated Core meaning into deterministic human-facing wording."""
-
+def realize_core_conversation_meaning(event: Mapping[str, Any]) -> GroundedConversationExpression:
     meaning = core_conversation_meaning_from_event(event)
-
     if meaning.response_kind is GroundedResponseKind.FACT:
         label = _fact_label(meaning.fact_id or "fact")
         value = _format_value(meaning.value, meaning.unit)
@@ -145,15 +134,11 @@ def realize_core_conversation_meaning(
         if "stale" in {item.casefold() for item in meaning.qualifiers}:
             text = "Last known: %s" % text
     elif meaning.response_kind is GroundedResponseKind.AUTHORITY_REQUIRED:
-        text = (
-            "I understand the request. Runtime authorization is required before "
-            "any action can occur."
-        )
+        text = "I understand the request. Runtime authorization is required before any action can occur."
     elif meaning.response_kind is GroundedResponseKind.ACKNOWLEDGE:
         text = "Understood."
     else:
         text = "I don't have enough verified information to answer that yet."
-
     return GroundedConversationExpression(
         conversation_id=meaning.conversation_id,
         turn_id=meaning.turn_id,
@@ -168,6 +153,10 @@ def realize_core_conversation_meaning(
 def _fact_label(fact_id: str) -> str:
     known = {
         "cabin.temperature": "Cabin temperature",
+        "outside.temperature": "Outside temperature",
+        "cabin.humidity": "Cabin humidity",
+        "cabin.ambient_light": "Cabin ambient light",
+        "vehicle.voltage": "Vehicle voltage",
         "vehicle.speed": "Vehicle speed",
         "engine.rpm": "Engine RPM",
         "ignition.state": "Ignition state",
@@ -180,19 +169,12 @@ def _fact_label(fact_id: str) -> str:
 
 
 def _format_value(value: Any, unit: Optional[str]) -> str:
-    if isinstance(value, bool):
-        rendered = "true" if value else "false"
-    else:
-        rendered = str(value)
-
+    rendered = "true" if value is True else "false" if value is False else str(value)
     if not unit:
         return rendered
-
-    display_unit = {
-        "C": "°C",
-        "F": "°F",
-        "rpm": "RPM",
-    }.get(unit, unit)
+    display_unit = {"C": "°C", "F": "°F", "rpm": "RPM"}.get(unit, unit)
+    if display_unit == "%":
+        return "%s%%" % rendered
     return "%s %s" % (rendered, display_unit)
 
 

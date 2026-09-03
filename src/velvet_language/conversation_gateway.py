@@ -240,10 +240,11 @@ class ConversationGateway:
             if expression.turn_number != request.turn_number:
                 raise ValueError("Core meaning turn_number does not match request")
 
-            if not (
-                expression.response_kind is GroundedResponseKind.UNAVAILABLE
-                and request.requires_authority_check
-            ):
+            # Grounded meaning is opportunistic.  If Core cannot ground this
+            # particular turn, retain the richer Language baseline rather than
+            # flattening corrections, teaching, jokes, or observations into an
+            # unrelated unavailable-answer sentence.
+            if expression.response_kind is not GroundedResponseKind.UNAVAILABLE:
                 reply_text = expression.text
                 generator = expression.generator
 
