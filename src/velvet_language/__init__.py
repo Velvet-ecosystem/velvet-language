@@ -10,6 +10,16 @@ from .capability_expression import (
 from .concept_lexicon import LexicalConcept, LexicalRegister
 from .context_strategy import ContextualStrategy, StrategyContext, contextualize_strategy
 from .conversation_acts import ActInterpretation, ConversationAct, interpret_conversation_act
+from .conversation_gateway import (
+    CONVERSATION_TURN_EVENT,
+    CONVERSATION_TURN_SCHEMA_VERSION,
+    MAX_TURN_CHARACTERS,
+    ConversationExchange,
+    ConversationGateway,
+    ConversationModality,
+    ConversationReply,
+    ConversationRequest,
+)
 from .conversation_state import ConversationState
 from .experience import LanguageExperience, correction_experience
 from .experience_evaluator import LanguagePromotionCandidate, evaluate_experiences
@@ -66,10 +76,17 @@ __all__ = [
     "CapabilityExpression",
     "CapabilityExpressionInput",
     "CapabilityStatus",
+    "CONVERSATION_TURN_EVENT",
+    "CONVERSATION_TURN_SCHEMA_VERSION",
     "ContextualStrategy",
     "ConversationAct",
+    "ConversationExchange",
+    "ConversationGateway",
     "ConversationGoal",
+    "ConversationModality",
     "ConversationPlan",
+    "ConversationReply",
+    "ConversationRequest",
     "ConversationState",
     "FallbackExpression",
     "GoalStatus",
@@ -77,6 +94,7 @@ __all__ = [
     "LanguagePromotionCandidate",
     "LexicalConcept",
     "LexicalRegister",
+    "MAX_TURN_CHARACTERS",
     "MeaningPacket",
     "MissingSlotError",
     "QuestionCandidateInput",
