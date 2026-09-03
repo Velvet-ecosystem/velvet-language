@@ -17,6 +17,7 @@ CORE_CONVERSATION_SCHEMA_VERSION = "0.1"
 
 class GroundedResponseKind(str, Enum):
     FACT = "fact"
+    EVIDENCE = "evidence"
     UNAVAILABLE = "unavailable"
     ACKNOWLEDGE = "acknowledge"
     AUTHORITY_REQUIRED = "authority_required"
@@ -32,6 +33,7 @@ class CoreConversationMeaning:
     fact_id: Optional[str] = None
     value: Any = None
     unit: Optional[str] = None
+    source_label: Optional[str] = None
     qualifiers: Tuple[str, ...] = ()
     source_refs: Tuple[str, ...] = ()
     requires_authority_check: bool = False
@@ -57,6 +59,8 @@ class CoreConversationMeaning:
             _require_text("fact_id", self.fact_id)
         if self.unit is not None:
             _require_text("unit", self.unit)
+        if self.source_label is not None:
+            _require_text("source_label", self.source_label)
         _require_text_tuple("qualifiers", self.qualifiers)
         _require_text_tuple("source_refs", self.source_refs)
         if not isinstance(self.requires_authority_check, bool):
@@ -65,10 +69,21 @@ class CoreConversationMeaning:
             raise ValueError("Core conversation meaning cannot carry authority")
         if self.grants_authority or self.grants_execution or self.grants_actuation:
             raise ValueError("Core conversation meaning cannot grant authority or execution")
+
         if self.response_kind is GroundedResponseKind.FACT:
             if self.fact_id is None:
                 raise ValueError("fact response requires fact_id")
             _require_scalar("value", self.value)
+        elif self.response_kind is GroundedResponseKind.EVIDENCE:
+            if self.fact_id is None:
+                raise ValueError("evidence response requires fact_id")
+            if self.source_label is None:
+                raise ValueError("evidence response requires source_label")
+            if not self.source_refs:
+                raise ValueError("evidence response requires source_refs")
+            _require_scalar("value", self.value)
+            if not isinstance(self.value, str) or not self.value.strip():
+                raise ValueError("evidence response value must be non-empty text")
         elif self.value is not None:
             raise ValueError("non-fact response cannot carry value")
 
@@ -110,6 +125,7 @@ def core_conversation_meaning_from_event(event: Mapping[str, Any]) -> CoreConver
         fact_id=_optional_text(event.get("fact_id")),
         value=event.get("value"),
         unit=_optional_text(event.get("unit")),
+        source_label=_optional_text(event.get("source_label")),
         qualifiers=_text_sequence(event.get("qualifiers", ()), "qualifiers"),
         source_refs=_text_sequence(event.get("source_refs", ()), "source_refs"),
         requires_authority_check=event.get("requires_authority_check", False),
@@ -133,6 +149,21 @@ def realize_core_conversation_meaning(event: Mapping[str, Any]) -> GroundedConve
             text = "%s is %s." % (label, value)
         if "stale" in {item.casefold() for item in meaning.qualifiers}:
             text = "Last known: %s" % text
+    elif meaning.response_kind is GroundedResponseKind.EVIDENCE:
+        excerpt = str(meaning.value).strip()
+        qualifier_set = {item.casefold() for item in meaning.qualifiers}
+        if "source-superseded" in qualifier_set:
+            text = "Velour found this in %s, but that source has been superseded: %s" % (
+                meaning.source_label,
+                excerpt,
+            )
+        elif "source-stale" in qualifier_set:
+            text = "Velour found this in %s, but the source is marked stale: %s" % (
+                meaning.source_label,
+                excerpt,
+            )
+        else:
+            text = "Velour found this in %s: %s" % (meaning.source_label, excerpt)
     elif meaning.response_kind is GroundedResponseKind.AUTHORITY_REQUIRED:
         text = "I understand the request. Runtime authorization is required before any action can occur."
     elif meaning.response_kind is GroundedResponseKind.ACKNOWLEDGE:
