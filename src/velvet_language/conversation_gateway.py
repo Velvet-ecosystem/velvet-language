@@ -10,19 +10,25 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Mapping, Optional
+from typing import Callable, Mapping, Optional
 from uuid import uuid4
 
 from .context_strategy import StrategyContext
 from .conversation_acts import ConversationAct
 from .conversation_state import ConversationState
 from .fallback import render_fallback
+from .grounded_conversation import GroundedResponseKind, realize_core_conversation_meaning
 from .orchestrator import TurnDecision, TurnInput, orchestrate_turn
 from .response_strategy import ResponseStrategy
 
 MAX_TURN_CHARACTERS = 4096
 CONVERSATION_TURN_EVENT = "velvet.language.conversation.turn"
 CONVERSATION_TURN_SCHEMA_VERSION = "0.1"
+
+GroundedMeaningResolver = Callable[
+    [Mapping[str, object]],
+    Mapping[str, object],
+]
 
 
 class ConversationModality(str, Enum):
@@ -166,12 +172,14 @@ class ConversationGateway:
         self,
         conversation_id: Optional[str] = None,
         context: Optional[StrategyContext] = None,
+        meaning_resolver: Optional[GroundedMeaningResolver] = None,
     ) -> None:
         resolved_id = (conversation_id or f"conversation-{uuid4().hex}").strip()
         if not resolved_id:
             raise ValueError("conversation_id must not be empty")
         self._state = ConversationState(conversation_id=resolved_id)
         self._context = context or StrategyContext()
+        self._meaning_resolver = meaning_resolver
 
     @property
     def state(self) -> ConversationState:
@@ -219,15 +227,36 @@ class ConversationGateway:
             may_speak=decision.may_speak,
         )
 
+        reply_text = _baseline_reply(decision)
+        generator = "deterministic-conversation-baseline"
+
+        if self._meaning_resolver is not None:
+            meaning_event = self._meaning_resolver(request.to_event())
+            expression = realize_core_conversation_meaning(meaning_event)
+            if expression.conversation_id != request.conversation_id:
+                raise ValueError("Core meaning conversation_id does not match request")
+            if expression.turn_id != request.turn_id:
+                raise ValueError("Core meaning turn_id does not match request")
+            if expression.turn_number != request.turn_number:
+                raise ValueError("Core meaning turn_number does not match request")
+
+            if not (
+                expression.response_kind is GroundedResponseKind.UNAVAILABLE
+                and request.requires_authority_check
+            ):
+                reply_text = expression.text
+                generator = expression.generator
+
         reply = ConversationReply(
             conversation_id=request.conversation_id,
             turn_number=request.turn_number,
-            text=_baseline_reply(decision),
+            text=reply_text,
             display=True,
             speak=(
                 modality is ConversationModality.SPEECH_TRANSCRIPT
                 and decision.may_speak
             ),
+            generator=generator,
         )
 
         return ConversationExchange(

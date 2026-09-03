@@ -19,6 +19,7 @@ from .conversation_gateway import (
     ConversationModality,
     ConversationReply,
     ConversationRequest,
+    GroundedMeaningResolver,
 )
 from .conversation_state import ConversationState
 from .experience import LanguageExperience, correction_experience
@@ -34,6 +35,15 @@ from .frames import (
     realize_frame,
 )
 from .goals import ConversationGoal, GoalStatus, update_goal
+from .grounded_conversation import (
+    CORE_CONVERSATION_MEANING_EVENT,
+    CORE_CONVERSATION_SCHEMA_VERSION,
+    CoreConversationMeaning,
+    GroundedConversationExpression,
+    GroundedResponseKind,
+    core_conversation_meaning_from_event,
+    realize_core_conversation_meaning,
+)
 from .models import MeaningPacket, RenderedExpression, ResponseVariant
 from .orchestrator import TurnDecision, TurnInput, orchestrate_turn
 from .planner import ConversationPlan, plan_response
@@ -73,6 +83,8 @@ __all__ = [
     "ActInterpretation",
     "AnalogyExpression",
     "AnalogyInput",
+    "CORE_CONVERSATION_MEANING_EVENT",
+    "CORE_CONVERSATION_SCHEMA_VERSION",
     "CapabilityExpression",
     "CapabilityExpressionInput",
     "CapabilityStatus",
@@ -88,8 +100,12 @@ __all__ = [
     "ConversationReply",
     "ConversationRequest",
     "ConversationState",
+    "CoreConversationMeaning",
     "FallbackExpression",
     "GoalStatus",
+    "GroundedConversationExpression",
+    "GroundedMeaningResolver",
+    "GroundedResponseKind",
     "LanguageExperience",
     "LanguagePromotionCandidate",
     "LexicalConcept",
@@ -127,6 +143,7 @@ __all__ = [
     "build_speech_expression_draft",
     "choose_and_realize",
     "contextualize_strategy",
+    "core_conversation_meaning_from_event",
     "correction_experience",
     "evaluate_experiences",
     "infer_slots",
@@ -135,6 +152,7 @@ __all__ = [
     "plan_response",
     "realize_analogy",
     "realize_capability",
+    "realize_core_conversation_meaning",
     "realize_frame",
     "realize_question",
     "realize_reflection",
