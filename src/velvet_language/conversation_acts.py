@@ -37,9 +37,10 @@ class ActInterpretation:
 def interpret_conversation_act(text: str) -> ActInterpretation:
     """Bounded first-pass interpretation of what a human turn is doing.
 
-    A turn may have a primary practical act and secondary surface acts. For
-    example, "Can you open the window?" is primarily a request while also
-    having question form. Classification never grants authority.
+    Informational phrasing such as ``Can you tell me the temperature?`` is a
+    question, not an execution request. Practical requests such as ``Can you
+    open the window?`` remain authority-gated. Classification never grants
+    authority.
     """
 
     raw = text.strip()
@@ -49,7 +50,35 @@ def interpret_conversation_act(text: str) -> ActInterpretation:
 
     evidence: list[str] = []
 
-    request_starts = ("please ", "could you ", "can you ", "would you ", "i'd like ", "i would like ")
+    informational_starts = (
+        "can you tell me ",
+        "could you tell me ",
+        "would you tell me ",
+        "please tell me ",
+        "tell me ",
+        "can you explain ",
+        "could you explain ",
+        "would you explain ",
+        "please explain ",
+        "explain ",
+    )
+    if lower.startswith(informational_starts):
+        evidence.extend(("informational_request", "question_form"))
+        return ActInterpretation(
+            ConversationAct.QUESTION,
+            0.9,
+            tuple(evidence),
+            execution_requested=False,
+        )
+
+    request_starts = (
+        "please ",
+        "could you ",
+        "can you ",
+        "would you ",
+        "i'd like ",
+        "i would like ",
+    )
     if lower.startswith(request_starts):
         evidence.append("request_marker")
         secondary: list[ConversationAct] = []
@@ -93,7 +122,11 @@ def interpret_conversation_act(text: str) -> ActInterpretation:
             execution_requested=True,
         )
 
-    if raw.endswith("?") or lower.startswith(("what ", "why ", "how ", "when ", "where ", "who ")):
+    question_starts = (
+        "what ", "what's ", "whats ", "why ", "how ", "when ", "where ", "who ",
+        "is ", "are ", "do ", "does ", "did ", "has ", "have ", "was ", "were ",
+    )
+    if raw.endswith("?") or lower.startswith(question_starts):
         evidence.append("question_form")
         return ActInterpretation(ConversationAct.QUESTION, 0.9, tuple(evidence))
 
