@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Mapping, Optional
+from typing import Callable, Mapping, Optional, Tuple
 from uuid import uuid4
 
 from .context_strategy import StrategyContext
@@ -87,7 +87,7 @@ class ConversationRequest:
 
 @dataclass(frozen=True)
 class ConversationReply:
-    """Bounded baseline reply for a human-facing conversation surface."""
+    """Bounded reply plus optional read-only grounding provenance."""
 
     conversation_id: str
     turn_number: int
@@ -95,9 +95,28 @@ class ConversationReply:
     display: bool
     speak: bool
     generator: str = "deterministic-conversation-baseline"
+    source_refs: Tuple[str, ...] = ()
+    source_label: Optional[str] = None
+    source_labels: Tuple[str, ...] = ()
+    evidence_texts: Tuple[str, ...] = ()
+    qualifiers: Tuple[str, ...] = ()
     authority_granted: bool = False
 
     def __post_init__(self) -> None:
+        for name, values in (
+            ("source_refs", self.source_refs),
+            ("source_labels", self.source_labels),
+            ("evidence_texts", self.evidence_texts),
+            ("qualifiers", self.qualifiers),
+        ):
+            if not isinstance(values, tuple):
+                raise ValueError("%s must be a tuple" % name)
+            if any(not isinstance(item, str) or not item.strip() for item in values):
+                raise ValueError("%s entries must be non-empty text" % name)
+        if self.source_label is not None and (
+            not isinstance(self.source_label, str) or not self.source_label.strip()
+        ):
+            raise ValueError("source_label must be non-empty text")
         if self.authority_granted:
             raise ValueError("conversation reply cannot grant authority")
 
@@ -229,6 +248,11 @@ class ConversationGateway:
 
         reply_text = _baseline_reply(decision)
         generator = "deterministic-conversation-baseline"
+        source_refs: Tuple[str, ...] = ()
+        source_label: Optional[str] = None
+        source_labels: Tuple[str, ...] = ()
+        evidence_texts: Tuple[str, ...] = ()
+        qualifiers: Tuple[str, ...] = ()
 
         if self._meaning_resolver is not None:
             meaning_event = self._meaning_resolver(request.to_event())
@@ -240,13 +264,18 @@ class ConversationGateway:
             if expression.turn_number != request.turn_number:
                 raise ValueError("Core meaning turn_number does not match request")
 
-            # Grounded meaning is opportunistic.  If Core cannot ground this
+            # Grounded meaning is opportunistic. If Core cannot ground this
             # particular turn, retain the richer Language baseline rather than
             # flattening corrections, teaching, jokes, or observations into an
             # unrelated unavailable-answer sentence.
             if expression.response_kind is not GroundedResponseKind.UNAVAILABLE:
                 reply_text = expression.text
                 generator = expression.generator
+                source_refs = expression.source_refs
+                source_label = expression.source_label
+                source_labels = expression.source_labels
+                evidence_texts = expression.evidence_texts
+                qualifiers = expression.qualifiers
 
         reply = ConversationReply(
             conversation_id=request.conversation_id,
@@ -258,6 +287,11 @@ class ConversationGateway:
                 and decision.may_speak
             ),
             generator=generator,
+            source_refs=source_refs,
+            source_label=source_label,
+            source_labels=source_labels,
+            evidence_texts=evidence_texts,
+            qualifiers=qualifiers,
         )
 
         return ConversationExchange(
