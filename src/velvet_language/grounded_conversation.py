@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Mapping, Optional, Tuple
 
+from .evidence_expression import naturalize_evidence_excerpt, realize_evidence_text
+
 CORE_CONVERSATION_MEANING_EVENT = "velvet.core.conversation.meaning"
 CORE_CONVERSATION_SCHEMA_VERSION = "0.1"
 MAX_SYNTHESIS_SOURCES = 3
@@ -130,10 +132,19 @@ class GroundedConversationExpression:
     response_kind: GroundedResponseKind
     confidence: float
     source_refs: Tuple[str, ...]
+    source_label: Optional[str] = None
+    source_labels: Tuple[str, ...] = ()
+    evidence_texts: Tuple[str, ...] = ()
+    qualifiers: Tuple[str, ...] = ()
     generator: str = "core-grounded-conversation"
     authority_granted: bool = False
 
     def __post_init__(self) -> None:
+        if self.source_label is not None:
+            _require_text("source_label", self.source_label)
+        _require_text_tuple("source_labels", self.source_labels)
+        _require_text_tuple("evidence_texts", self.evidence_texts)
+        _require_text_tuple("qualifiers", self.qualifiers)
         if self.authority_granted:
             raise ValueError("grounded conversation expression cannot grant authority")
 
@@ -174,6 +185,7 @@ def core_conversation_meaning_from_event(event: Mapping[str, Any]) -> CoreConver
 
 def realize_core_conversation_meaning(event: Mapping[str, Any]) -> GroundedConversationExpression:
     meaning = core_conversation_meaning_from_event(event)
+    evidence_texts: Tuple[str, ...] = ()
     if meaning.response_kind is GroundedResponseKind.FACT:
         label = _fact_label(meaning.fact_id or "fact")
         value = _format_value(meaning.value, meaning.unit)
@@ -187,20 +199,14 @@ def realize_core_conversation_meaning(event: Mapping[str, Any]) -> GroundedConve
             text = "Last known: %s" % text
     elif meaning.response_kind is GroundedResponseKind.EVIDENCE:
         excerpt = str(meaning.value).strip()
-        qualifier_set = {item.casefold() for item in meaning.qualifiers}
-        if "source-superseded" in qualifier_set:
-            text = "Velour found this in %s, but that source has been superseded: %s" % (
-                meaning.source_label,
-                excerpt,
-            )
-        elif "source-stale" in qualifier_set:
-            text = "Velour found this in %s, but the source is marked stale: %s" % (
-                meaning.source_label,
-                excerpt,
-            )
-        else:
-            text = "Velour found this in %s: %s" % (meaning.source_label, excerpt)
+        evidence_texts = (excerpt,)
+        text = realize_evidence_text(
+            excerpt,
+            source_label=meaning.source_label or "Library source",
+            qualifiers=meaning.qualifiers,
+        )
     elif meaning.response_kind is GroundedResponseKind.SYNTHESIS:
+        evidence_texts = meaning.evidence_values
         text = _realize_synthesis(meaning)
     elif meaning.response_kind is GroundedResponseKind.AUTHORITY_REQUIRED:
         text = "I understand the request. Runtime authorization is required before any action can occur."
@@ -216,6 +222,10 @@ def realize_core_conversation_meaning(event: Mapping[str, Any]) -> GroundedConve
         response_kind=meaning.response_kind,
         confidence=float(meaning.confidence),
         source_refs=meaning.source_refs,
+        source_label=meaning.source_label,
+        source_labels=meaning.source_labels,
+        evidence_texts=evidence_texts,
+        qualifiers=meaning.qualifiers,
     )
 
 
@@ -229,9 +239,10 @@ def _realize_synthesis(meaning: CoreConversationMeaning) -> str:
                 str(meaning.value).strip(),
             )
         else:
+            guidance = naturalize_evidence_excerpt(str(meaning.value).strip())
             text = "Velour compared %d Library sources. They point to the same guidance: %s" % (
                 count,
-                str(meaning.value).strip(),
+                guidance,
             )
     elif meaning.evidence_disposition == "conflicted":
         text = "Velour found conflicting Library evidence: %s. I won't collapse that into one answer." % (
