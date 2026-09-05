@@ -64,7 +64,7 @@ def test_flattened_markdown_list_is_realized_as_a_natural_sentence():
         "According to Velour Library README, core principles are local first; "
         "provenance before confidence; preserve the source; trust is graded; "
         "retrieval is not belief; receipts matter; knowledge is modular; "
-        "models are optional; and currency is metadata, not truth."
+        "models are optional, and currency is metadata, not truth."
     )
     assert expression.evidence_texts == (excerpt,)
 
