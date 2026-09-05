@@ -130,6 +130,38 @@ def test_spoken_and_written_turns_share_same_grounded_reply_contract():
     assert spoken.reply.speak is True
 
 
+def test_grounded_library_provenance_survives_into_conversation_reply():
+    excerpt = "## Core principles - Local first. - Preserve the source."
+
+    def resolver(request):
+        return event_for_request(
+            request,
+            response_kind="evidence",
+            fact_id="library.evidence",
+            value=excerpt,
+            unit=None,
+            confidence=1.0,
+            source_label="Velour Library README",
+            source_refs=["library:item:readme", "library:chunk:core-principles"],
+            qualifiers=["reference-only", "trust-class:primary"],
+        )
+
+    gateway = ConversationGateway(conversation_id="bench-chat", meaning_resolver=resolver)
+    exchange = gateway.submit("What are the core principles?")
+
+    assert exchange.reply.text == (
+        "According to Velour Library README, "
+        "core principles are local first and preserve the source."
+    )
+    assert exchange.reply.source_label == "Velour Library README"
+    assert exchange.reply.source_refs == (
+        "library:item:readme",
+        "library:chunk:core-principles",
+    )
+    assert exchange.reply.evidence_texts == (excerpt,)
+    assert "reference-only" in exchange.reply.qualifiers
+
+
 def test_unavailable_grounding_preserves_language_baseline_for_non_fact_turns():
     gateway = ConversationGateway(
         conversation_id="bench-chat",

@@ -32,16 +32,41 @@ def evidence_event(**overrides):
     return event
 
 
-def test_reference_only_library_passage_is_spoken_as_evidence_not_fact():
+def test_reference_only_library_passage_is_naturally_worded_but_stays_evidence():
     expression = realize_core_conversation_meaning(evidence_event())
 
     assert expression.response_kind is GroundedResponseKind.EVIDENCE
     assert expression.text == (
-        "Velour found this in Tiburon Workshop Manual: "
-        "Tighten the pulley bolt to 170 N·m after seating the pulley."
+        "According to Tiburon Workshop Manual, "
+        "tighten the pulley bolt to 170 N·m after seating the pulley."
     )
+    assert expression.evidence_texts == (
+        "Tighten the pulley bolt to 170 N·m after seating the pulley.",
+    )
+    assert expression.source_label == "Tiburon Workshop Manual"
     assert expression.source_refs[0] == "library:item:item_manual"
     assert expression.authority_granted is False
+
+
+def test_flattened_markdown_list_is_realized_as_a_natural_sentence():
+    excerpt = (
+        "Velour keeps provenance for another component. ## Core principles "
+        "- Local first. - Provenance before confidence. - Preserve the source. "
+        "- Trust is graded. - Retrieval is not belief. - Receipts matter. "
+        "- Knowledge is modular. - Models are optional. "
+        "- Currency is metadata, not truth."
+    )
+    expression = realize_core_conversation_meaning(
+        evidence_event(value=excerpt, source_label="Velour Library README")
+    )
+
+    assert expression.text == (
+        "According to Velour Library README, core principles are local first; "
+        "provenance before confidence; preserve the source; trust is graded; "
+        "retrieval is not belief; receipts matter; knowledge is modular; "
+        "models are optional, and currency is metadata, not truth."
+    )
+    assert expression.evidence_texts == (excerpt,)
 
 
 def test_stale_and_superseded_library_sources_are_disclosed():
